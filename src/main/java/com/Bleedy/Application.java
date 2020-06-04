@@ -3,6 +3,7 @@ package com.Bleedy;
 import com.Bleedy.repos.UserRepo;
 import com.google.api.client.googleapis.json.GoogleJsonResponseException;
 import com.google.api.services.youtube.YouTube;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
@@ -17,6 +18,7 @@ import org.telegram.telegrambots.ApiContextInitializer;
 import org.telegram.telegrambots.meta.TelegramBotsApi;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
+import javax.inject.Inject;
 import java.io.IOException;
 import java.security.GeneralSecurityException;
 
@@ -25,6 +27,10 @@ import java.security.GeneralSecurityException;
 @EntityScan
 @EnableJpaRepositories
 public class Application {
+    @Bean
+    YouTube youTube() throws GeneralSecurityException, IOException {
+        return YoutubeApi.getService();
+    }
 
 
     public static void main(String[] args) throws GeneralSecurityException, IOException {
@@ -34,7 +40,6 @@ public class Application {
         UserRepo repository = context.getBean(UserRepo.class);
 
         Iterable<User> users = repository.findAll();
-
         System.out.println("Users found with findAll():");
         System.out.println("-------------------------------");
         for (User user : users) {
@@ -42,12 +47,12 @@ public class Application {
         }
         System.out.println();
 
-        //YouTube newYoutube = (YouTube) context.getBean("youTube");
-        YouTube newYoutube = YoutubeApi.getService();
 
+        MyTelegramBot telegramBot = (MyTelegramBot) context.getBean("myTelegramBot");
         TelegramBotsApi botsApi  = new TelegramBotsApi();
+
         try {
-            botsApi.registerBot( new MyTelegramBot(newYoutube));
+            botsApi.registerBot(telegramBot);
         } catch (TelegramApiException e) {
             e.printStackTrace();
         }

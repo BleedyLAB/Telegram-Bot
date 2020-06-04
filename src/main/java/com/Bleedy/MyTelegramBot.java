@@ -19,21 +19,20 @@ import java.io.IOException;
 
 @Component
 public class MyTelegramBot extends TelegramLongPollingBot {
-    @Autowired
-    @Qualifier("userRepo")
-    private UserRepo userRepo;
 
+    @Autowired
+    private UserRepo userRepo;
+    @Autowired
     YouTube youtubeService;
+
     Integer count = 0;
     Boolean countForRegister = false;
     Boolean countForItem = false;
 
     public MyTelegramBot(){}
 
-    public MyTelegramBot(YouTube youtubeService){
-        this.youtubeService = youtubeService;
-        //this.userRepo = userRepo;
-    }
+
+
 
     @Override
     public void onUpdateReceived(Update update) {
