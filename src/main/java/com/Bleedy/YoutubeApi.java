@@ -22,7 +22,6 @@ import java.util.Collection;
 @Component
 public class YoutubeApi {
     private static final String CLIENT_SECRETS= "/client_secret.json";
-    private static final String YOUR_API_KEY = "AIzaSyCIvuRAiySrUMN7MPlw3qI8xwtNtLNnF0c";
     private static final Collection<String> SCOPES =
             Arrays.asList("https://www.googleapis.com/auth/youtube.readonly");
 
@@ -64,5 +63,4 @@ public class YoutubeApi {
                 .setApplicationName(APPLICATION_NAME)
                 .build();
     }
-
 }
