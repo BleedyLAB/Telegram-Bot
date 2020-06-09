@@ -32,7 +32,7 @@ public class MyTelegramBot extends TelegramLongPollingBot {
 
     @Override
     public void onUpdateReceived(Update update) {
-        //top list with bad tags
+        //top list without bad tags
         if (update.hasMessage() && update.getMessage().getText().contains("/toplistwitblock")) {
             StringBuilder stringBuilder = new StringBuilder();
             try {
@@ -86,7 +86,7 @@ public class MyTelegramBot extends TelegramLongPollingBot {
             }
 
         }
-        // register
+        // register new user
         if (update.getMessage().getText().contentEquals("/register")) {
             Iterable<User> users = userRepo.findAll();
             for (User user : users) {
@@ -118,7 +118,7 @@ public class MyTelegramBot extends TelegramLongPollingBot {
             }
         }
 
-        // add tag
+        // add user tag in blacklist
         if (update.getMessage().getText().contains("/addtag")) {
             Iterable<User> users = userRepo.findAll();
             for (User user : users) {
@@ -138,7 +138,8 @@ public class MyTelegramBot extends TelegramLongPollingBot {
                 }
             }
         }
-        // add tag
+
+        // add user channel in blacklist
         if (update.getMessage().getText().contains("/addchannel")) {
             Iterable<User> users = userRepo.findAll();
             for (User user : users) {
@@ -156,6 +157,7 @@ public class MyTelegramBot extends TelegramLongPollingBot {
                 }
             }
         }
+        // sent user "help" message 
         if (update.hasMessage() && update.getMessage().isCommand() && update.getMessage().getText().contentEquals("/help")) {
             SendMessage message = new SendMessage() // Create a SendMessage object with mandatory fields
                     .setChatId(update.getMessage().getChatId())
@@ -169,7 +171,62 @@ public class MyTelegramBot extends TelegramLongPollingBot {
 
         }
 
+        // sent video list 
+        if (update.hasMessage() && update.getMessage().getText().contentEquals("/MyTopTag")){
+            StringBuilder stringBuilder = new StringBuilder();
+            try {
+                YouTube.Videos.List request = youtubeService.videos()
+                        .list("snippet,contentDetails,statistics");
+                VideoListResponse response = request.setChart("mostPopular")
+                        .setRegionCode("RU")
+                        .setMaxResults(1500L)
+                        .execute();
+                Iterable<User> users = userRepo.findAll();
+                for (User user : users) {
+                    if (user.getUserIdentification().equals(update.getMessage().getChat().getId())) {
+                        for (Video item : response.getItems()) {
+                            for (String tag : user.getWhiteTag()) {
+                                if (item.getSnippet().getTags() == null || !item.getSnippet().getTags().contains(tag)) {
+                                    countForItem = true;
+                                }else{
+                                    countForItem = false;
+                                    break;
+                                }
+                            }
+
+                            if (countForItem) {
+                                //System.out.println("skip");
+                            } else {
+                                if (count < 10) {
+                                    stringBuilder.append("www.youtube.com/watch?v=" + item.getId() +
+                                            "\n" + item.getSnippet().getTitle() + "\\ " + item.getSnippet().getChannelTitle() + ";" + "\n");
+                                    //System.out.println("www.youtube.com/watch?v=" + item.getId() +
+                                    //        "\n" + item.getSnippet().getTitle() + "\\"+ item.getSnippet().getChannelTitle() + "\n"+ item.getSnippet().getTags());
+                                    count++;
+                                }else{break;}
+                            }
+                            countForItem = false;
+                            
+                        }
+                    }else{
+                        stringBuilder.append("You are not registred for this functional");
+                    }
+                }
+                SendMessage message = new SendMessage() // Create a SendMessage object with mandatory fields
+                        .setChatId(update.getMessage().getChatId())
+                        .setText(stringBuilder.toString());
+                count =0;
+                try {
+                    execute(message); // Call method to send the message
+                } catch (TelegramApiException e) {
+                    e.printStackTrace();
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
     }
+}
+
 
 
 
